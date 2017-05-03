@@ -1,0 +1,7 @@
+[package]
+name = "ll"
+version = "0.1.0"
+authors = ["solarsail <newleaf.lu@gmail.com>"]
+
+[dependencies]
+nalgebra = "0.11.0"
