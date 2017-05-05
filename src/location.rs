@@ -1,7 +1,7 @@
 use std::ops::{Add, Sub, Neg};
 
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub struct Position {
     pub x: i32,
     pub y: i32,
@@ -22,7 +22,7 @@ impl Position {
         }
     }
 
-    pub fn distance_to(&self, other: &Position) -> PositionDelta {
+    pub fn distance_to(&self, other: Position) -> PositionDelta {
         PositionDelta {
             dx: self.x - other.x,
             dy: self.y - other.y,
@@ -31,7 +31,7 @@ impl Position {
 }
 
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub struct PositionDelta {
     pub dx: i32,
     pub dy: i32,
@@ -237,19 +237,22 @@ pub fn adjacent_vertex(l: Location,  d: Direction) -> Option<Location> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn position() {
         let p1 = Position::new(5, 8);
         let p2 = Position::new(2, 9);
-        assert_eq!(p2.distance_to(&p1), PositionDelta::new(-3, 1));
+        assert_eq!(p2.distance_to(p1), PositionDelta::new(-3, 1));
     }
 
+    #[test]
     fn edge() {
         let p1 = Position::new(5, 8);
         let s = Location::Surface(p1);
         let v = Location::Vertex(p1+direction_delta(Direction::East));
         let e = Location::Edge(p1+direction_delta(Direction::East), Direction::West);
-        assert_eq!(edge(s, Direction::East), e);
-        assert_eq!(edge(v, Direction::South), e);
+        assert_eq!(adjacent_edge(s, Direction::East).unwrap(), e);
+        assert_eq!(adjacent_edge(v, Direction::South).unwrap(), e);
     }
 }
