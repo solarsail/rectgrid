@@ -157,10 +157,53 @@ pub fn neighbor(l: Location, d: Direction) -> Location {
     match l {
         Location::Vertex(p) => Location::Vertex(p + direction_delta(d)),
         Location::Surface(p) => Location::Surface(p + direction_delta(d)),
-        Location::Edge(p, ed) => Location::Edge(p + direction_delta(d), ed),
+        Location::Edge(p, ed) => {
+            match d {
+                Direction::North | Direction::West | Direction::South | Direction::East => Location::Edge(p + direction_delta(d), ed),
+                _ => match ed {
+                    Direction::West => {
+                        let v = Location::Vertex(p);
+                        let s = adjacent_surface(v, d).unwrap();
+                        adjacent_edge(s, Direction::South).unwrap()
+                    }
+                    Direction::North => {
+                        let v = adjacent_vertex(l, Direction::East).unwrap();
+                        let s = adjacent_surface(v, d).unwrap();
+                        adjacent_edge(s, Direction::West).unwrap()
+                    }
+                    _ => unreachable!()
+                }
+            }
+        }
     }
 }
 
+
+pub fn adjacent_surface(l: Location, d: Direction) -> Option<Location> {
+    match l {
+        Location::Surface(_) => Some(neighbor(l, d)),
+        Location::Vertex(p) => match d {
+            Direction::NW => Some(Location::Surface(p+direction_delta(d))),
+            Direction::SW => Some(Location::Surface(p+direction_delta(Direction::West))),
+            Direction::SE => Some(Location::Surface(p)),
+            Direction::NE => Some(Location::Surface(p+direction_delta(Direction::North))),
+            _ => None
+        },
+        Location::Edge(p, ed) => match ed {
+            Direction::West => match d {
+                Direction::West => Some(Location::Surface(p+direction_delta(d))),
+                Direction::East => Some(Location::Surface(p)),
+                _ => None
+            },
+            Direction::North => match d {
+                Direction::North => Some(Location::Surface(p+direction_delta(d))),
+                Direction::South => Some(Location::Surface(p)),
+                _ => None
+            },
+            _ => None
+        }
+    }
+}
 
 pub fn adjacent_edge(l: Location, d: Direction) -> Option<Location> {
     match l {
@@ -179,7 +222,7 @@ pub fn adjacent_edge(l: Location, d: Direction) -> Option<Location> {
                         _ => None
                     }
                 }
-                Direction::South => {
+                Direction::North => {
                     match d {
                         Direction::West | Direction::East => Some(Location::Edge(p+direction_delta(d), ed)),
                         _ => None
@@ -216,14 +259,14 @@ pub fn adjacent_vertex(l: Location,  d: Direction) -> Option<Location> {
                 Direction::West => {
                     match d {
                         Direction::North => Some(Location::Vertex(p)),
-                        Direction::South => Some(Location::Vertex(p+direction_delta(Direction::South))),
+                        Direction::South => Some(Location::Vertex(p+direction_delta(d))),
                         _ => None
                     }
                 }
-                Direction::South => {
+                Direction::North => {
                     match d {
-                        Direction::West => Some(Location::Vertex(p+direction_delta(Direction::South))),
-                        Direction::East => Some(Location::Vertex(p+direction_delta(Direction::SE))),
+                        Direction::West => Some(Location::Vertex(p)),
+                        Direction::East => Some(Location::Vertex(p+direction_delta(d))),
                         _ => None
                     }
                 }
@@ -254,5 +297,25 @@ mod tests {
         let e = Location::Edge(p1+direction_delta(Direction::East), Direction::West);
         assert_eq!(adjacent_edge(s, Direction::East).unwrap(), e);
         assert_eq!(adjacent_edge(v, Direction::South).unwrap(), e);
+    }
+
+    #[test]
+    fn test_neighbor() {
+        let p1 = Position::new(-1, -1);
+        let p2 = Position::new( 0, -1);
+        let p3 = Position::new( 1, -1);
+        let p4 = Position::new(-1,  0);
+        let p5 = Position::new( 0,  0);
+        let p6 = Position::new( 1,  0);
+        let p7 = Position::new(-1,  1);
+        let p8 = Position::new( 0,  1);
+        let p9 = Position::new( 1,  1);
+        assert_eq!(Location::Surface(p4), neighbor(Location::Surface(p8), Direction::NW));
+        assert_eq!(Location::Surface(p5), neighbor(Location::Surface(p2), Direction::South));
+        assert_eq!(Location::Vertex(p7), neighbor(Location::Vertex(p8), Direction::West));
+        assert_eq!(Location::Vertex(p3), neighbor(Location::Vertex(p5), Direction::NE));
+        assert_eq!(Location::Edge(p8, Direction::North), neighbor(Location::Edge(p6, Direction::West), Direction::SW));
+        assert_eq!(Location::Edge(p2, Direction::West), neighbor(Location::Edge(p1, Direction::North), Direction::SE));
+        assert_eq!(Location::Edge(p9, Direction::North), neighbor(Location::Edge(p6, Direction::North), Direction::South));
     }
 }
