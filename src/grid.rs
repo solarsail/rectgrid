@@ -133,7 +133,7 @@ impl Neg for Direction {
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub enum Location {
+pub enum GridElement {
     Vertex(Position),
     Surface(Position),
     Edge(Position, Direction),
@@ -153,15 +153,15 @@ fn direction_delta(d: Direction) -> PositionDelta {
     }
 }
 
-pub fn neighbor(l: Location, d: Direction) -> Location {
+pub fn neighbor(l: GridElement, d: Direction) -> GridElement {
     match l {
-        Location::Vertex(p) => Location::Vertex(p + direction_delta(d)),
-        Location::Surface(p) => Location::Surface(p + direction_delta(d)),
-        Location::Edge(p, ed) => match d {
-            Direction::North | Direction::West | Direction::South | Direction::East => Location::Edge(p + direction_delta(d), ed),
+        GridElement::Vertex(p) => GridElement::Vertex(p + direction_delta(d)),
+        GridElement::Surface(p) => GridElement::Surface(p + direction_delta(d)),
+        GridElement::Edge(p, ed) => match d {
+            Direction::North | Direction::West | Direction::South | Direction::East => GridElement::Edge(p + direction_delta(d), ed),
             _ => match ed {
                 Direction::West => {
-                    let v = Location::Vertex(p);
+                    let v = GridElement::Vertex(p);
                     let s = adjacent_surface(v, d).unwrap();
                     adjacent_edge(s, Direction::South).unwrap()
                 }
@@ -177,25 +177,25 @@ pub fn neighbor(l: Location, d: Direction) -> Location {
 }
 
 
-pub fn adjacent_surface(l: Location, d: Direction) -> Option<Location> {
+pub fn adjacent_surface(l: GridElement, d: Direction) -> Option<GridElement> {
     match l {
-        Location::Surface(_) => Some(neighbor(l, d)),
-        Location::Vertex(p) => match d {
-            Direction::NW => Some(Location::Surface(p+direction_delta(d))),
-            Direction::SW => Some(Location::Surface(p+direction_delta(Direction::West))),
-            Direction::SE => Some(Location::Surface(p)),
-            Direction::NE => Some(Location::Surface(p+direction_delta(Direction::North))),
+        GridElement::Surface(_) => Some(neighbor(l, d)),
+        GridElement::Vertex(p) => match d {
+            Direction::NW => Some(GridElement::Surface(p+direction_delta(d))),
+            Direction::SW => Some(GridElement::Surface(p+direction_delta(Direction::West))),
+            Direction::SE => Some(GridElement::Surface(p)),
+            Direction::NE => Some(GridElement::Surface(p+direction_delta(Direction::North))),
             _ => None
         },
-        Location::Edge(p, ed) => match ed {
+        GridElement::Edge(p, ed) => match ed {
             Direction::West => match d {
-                Direction::West => Some(Location::Surface(p+direction_delta(d))),
-                Direction::East => Some(Location::Surface(p)),
+                Direction::West => Some(GridElement::Surface(p+direction_delta(d))),
+                Direction::East => Some(GridElement::Surface(p)),
                 _ => None
             },
             Direction::North => match d {
-                Direction::North => Some(Location::Surface(p+direction_delta(d))),
-                Direction::South => Some(Location::Surface(p)),
+                Direction::North => Some(GridElement::Surface(p+direction_delta(d))),
+                Direction::South => Some(GridElement::Surface(p)),
                 _ => None
             },
             _ => None
@@ -203,62 +203,62 @@ pub fn adjacent_surface(l: Location, d: Direction) -> Option<Location> {
     }
 }
 
-pub fn adjacent_edge(l: Location, d: Direction) -> Option<Location> {
+pub fn adjacent_edge(l: GridElement, d: Direction) -> Option<GridElement> {
     match l {
-        Location::Surface(p) => {
+        GridElement::Surface(p) => {
             match d {
-                Direction::North | Direction::West => Some(Location::Edge(p, d)),
-                Direction::South | Direction::East => Some(Location::Edge(p+direction_delta(d), -d)),
+                Direction::North | Direction::West => Some(GridElement::Edge(p, d)),
+                Direction::South | Direction::East => Some(GridElement::Edge(p+direction_delta(d), -d)),
                 _ => None
             }
         }
-        Location::Edge(p, ed) => {
+        GridElement::Edge(p, ed) => {
             match ed {
                 Direction::West => {
                     match d {
-                        Direction::North | Direction::South => Some(Location::Edge(p+direction_delta(d), ed)),
+                        Direction::North | Direction::South => Some(GridElement::Edge(p+direction_delta(d), ed)),
                         _ => None
                     }
                 }
                 Direction::North => {
                     match d {
-                        Direction::West | Direction::East => Some(Location::Edge(p+direction_delta(d), ed)),
+                        Direction::West | Direction::East => Some(GridElement::Edge(p+direction_delta(d), ed)),
                         _ => None
                     }
                 }
                 _ => None
             }
         }
-        Location::Vertex(p) => {
+        GridElement::Vertex(p) => {
             match d {
-                Direction::North => Some(Location::Edge(p+direction_delta(d), Direction::West)),
-                Direction::South => Some(Location::Edge(p, Direction::West)),
-                Direction::West => Some(Location::Edge(p+direction_delta(d), Direction::North)),
-                Direction::East => Some(Location::Edge(p, Direction::North)),
+                Direction::North => Some(GridElement::Edge(p+direction_delta(d), Direction::West)),
+                Direction::South => Some(GridElement::Edge(p, Direction::West)),
+                Direction::West => Some(GridElement::Edge(p+direction_delta(d), Direction::North)),
+                Direction::East => Some(GridElement::Edge(p, Direction::North)),
                 _ => None
             }
         }
     }
 }
 
-pub fn adjacent_vertex(l: Location,  d: Direction) -> Option<Location> {
+pub fn adjacent_vertex(l: GridElement,  d: Direction) -> Option<GridElement> {
     match l {
-        Location::Surface(p) => match d {
-            Direction::NW => Some(Location::Vertex(p)),
-            Direction::SW => Some(Location::Vertex(p+direction_delta(Direction::South))),
-            Direction::SE => Some(Location::Vertex(p+direction_delta(d))),
-            Direction::NE => Some(Location::Vertex(p+direction_delta(Direction::East))),
+        GridElement::Surface(p) => match d {
+            Direction::NW => Some(GridElement::Vertex(p)),
+            Direction::SW => Some(GridElement::Vertex(p+direction_delta(Direction::South))),
+            Direction::SE => Some(GridElement::Vertex(p+direction_delta(d))),
+            Direction::NE => Some(GridElement::Vertex(p+direction_delta(Direction::East))),
             _ => None
         },
-        Location::Edge(p, ed) => match ed {
+        GridElement::Edge(p, ed) => match ed {
             Direction::West => match d {
-                Direction::North => Some(Location::Vertex(p)),
-                Direction::South => Some(Location::Vertex(p+direction_delta(d))),
+                Direction::North => Some(GridElement::Vertex(p)),
+                Direction::South => Some(GridElement::Vertex(p+direction_delta(d))),
                 _ => None
             },
             Direction::North => match d {
-                Direction::West => Some(Location::Vertex(p)),
-                Direction::East => Some(Location::Vertex(p+direction_delta(d))),
+                Direction::West => Some(GridElement::Vertex(p)),
+                Direction::East => Some(GridElement::Vertex(p+direction_delta(d))),
                 _ => None
             },
             _ => None
@@ -291,13 +291,13 @@ mod tests {
         let p8 = Position::new( 0,  1);
         let p9 = Position::new( 1,  1);
 
-        assert_eq!(Location::Surface(p4), neighbor(Location::Surface(p8), Direction::NW));
-        assert_eq!(Location::Surface(p5), neighbor(Location::Surface(p2), Direction::South));
-        assert_eq!(Location::Vertex(p7), neighbor(Location::Vertex(p8), Direction::West));
-        assert_eq!(Location::Vertex(p3), neighbor(Location::Vertex(p5), Direction::NE));
-        assert_eq!(Location::Edge(p8, Direction::North), neighbor(Location::Edge(p6, Direction::West), Direction::SW));
-        assert_eq!(Location::Edge(p2, Direction::West), neighbor(Location::Edge(p1, Direction::North), Direction::SE));
-        assert_eq!(Location::Edge(p9, Direction::North), neighbor(Location::Edge(p6, Direction::North), Direction::South));
+        assert_eq!(GridElement::Surface(p4), neighbor(GridElement::Surface(p8), Direction::NW));
+        assert_eq!(GridElement::Surface(p5), neighbor(GridElement::Surface(p2), Direction::South));
+        assert_eq!(GridElement::Vertex(p7), neighbor(GridElement::Vertex(p8), Direction::West));
+        assert_eq!(GridElement::Vertex(p3), neighbor(GridElement::Vertex(p5), Direction::NE));
+        assert_eq!(GridElement::Edge(p8, Direction::North), neighbor(GridElement::Edge(p6, Direction::West), Direction::SW));
+        assert_eq!(GridElement::Edge(p2, Direction::West), neighbor(GridElement::Edge(p1, Direction::North), Direction::SE));
+        assert_eq!(GridElement::Edge(p9, Direction::North), neighbor(GridElement::Edge(p6, Direction::North), Direction::South));
     }
 
     #[test]
@@ -312,12 +312,12 @@ mod tests {
         let p8 = Position::new( 0,  1);
         let p9 = Position::new( 1,  1);
 
-        assert_eq!(Location::Surface(p3), adjacent_surface(Location::Surface(p2), Direction::East).unwrap());
-        assert_eq!(Location::Surface(p4), adjacent_surface(Location::Surface(p2), Direction::SW).unwrap());
-        assert_eq!(Location::Surface(p1), adjacent_surface(Location::Edge(p4, Direction::North), Direction::North).unwrap());
-        assert_eq!(Location::Surface(p5), adjacent_surface(Location::Vertex(p9), Direction::NW).unwrap());
-        assert_eq!(Location::Surface(p7), adjacent_surface(Location::Vertex(p8), Direction::SW).unwrap());
-        assert_eq!(Location::Surface(p6), adjacent_surface(Location::Edge(p6, Direction::West), Direction::East).unwrap());
+        assert_eq!(GridElement::Surface(p3), adjacent_surface(GridElement::Surface(p2), Direction::East).unwrap());
+        assert_eq!(GridElement::Surface(p4), adjacent_surface(GridElement::Surface(p2), Direction::SW).unwrap());
+        assert_eq!(GridElement::Surface(p1), adjacent_surface(GridElement::Edge(p4, Direction::North), Direction::North).unwrap());
+        assert_eq!(GridElement::Surface(p5), adjacent_surface(GridElement::Vertex(p9), Direction::NW).unwrap());
+        assert_eq!(GridElement::Surface(p7), adjacent_surface(GridElement::Vertex(p8), Direction::SW).unwrap());
+        assert_eq!(GridElement::Surface(p6), adjacent_surface(GridElement::Edge(p6, Direction::West), Direction::East).unwrap());
     }
 
     #[test]
@@ -332,11 +332,11 @@ mod tests {
         let p8 = Position::new( 0,  1);
         let p9 = Position::new( 1,  1);
 
-        assert_eq!(Location::Edge(p1, Direction::West), adjacent_edge(Location::Vertex(p4), Direction::North).unwrap());
-        assert_eq!(Location::Edge(p2, Direction::North), adjacent_edge(Location::Edge(p3, Direction::North), Direction::West).unwrap());
-        assert_eq!(Location::Edge(p5, Direction::North), adjacent_edge(Location::Vertex(p6), Direction::West).unwrap());
-        assert_eq!(Location::Edge(p8, Direction::West), adjacent_edge(Location::Surface(p7), Direction::East).unwrap());
-        assert_eq!(Location::Edge(p9, Direction::North), adjacent_edge(Location::Surface(p6), Direction::South).unwrap());
+        assert_eq!(GridElement::Edge(p1, Direction::West), adjacent_edge(GridElement::Vertex(p4), Direction::North).unwrap());
+        assert_eq!(GridElement::Edge(p2, Direction::North), adjacent_edge(GridElement::Edge(p3, Direction::North), Direction::West).unwrap());
+        assert_eq!(GridElement::Edge(p5, Direction::North), adjacent_edge(GridElement::Vertex(p6), Direction::West).unwrap());
+        assert_eq!(GridElement::Edge(p8, Direction::West), adjacent_edge(GridElement::Surface(p7), Direction::East).unwrap());
+        assert_eq!(GridElement::Edge(p9, Direction::North), adjacent_edge(GridElement::Surface(p6), Direction::South).unwrap());
     }
 
     #[test]
@@ -351,10 +351,10 @@ mod tests {
         let p8 = Position::new( 0,  1);
         let p9 = Position::new( 1,  1);
 
-        assert_eq!(Location::Vertex(p4), adjacent_vertex(Location::Edge(p1, Direction::West), Direction::South).unwrap());
-        assert_eq!(Location::Vertex(p3), adjacent_vertex(Location::Surface(p2), Direction::NE).unwrap());
-        assert_eq!(Location::Vertex(p9), adjacent_vertex(Location::Surface(p6), Direction::SW).unwrap());
-        assert_eq!(Location::Vertex(p8), adjacent_vertex(Location::Edge(p7, Direction::North), Direction::East).unwrap());
-        assert_eq!(Location::Vertex(p5), adjacent_vertex(Location::Surface(p5), Direction::NW).unwrap());
+        assert_eq!(GridElement::Vertex(p4), adjacent_vertex(GridElement::Edge(p1, Direction::West), Direction::South).unwrap());
+        assert_eq!(GridElement::Vertex(p3), adjacent_vertex(GridElement::Surface(p2), Direction::NE).unwrap());
+        assert_eq!(GridElement::Vertex(p9), adjacent_vertex(GridElement::Surface(p6), Direction::SW).unwrap());
+        assert_eq!(GridElement::Vertex(p8), adjacent_vertex(GridElement::Edge(p7, Direction::North), Direction::East).unwrap());
+        assert_eq!(GridElement::Vertex(p5), adjacent_vertex(GridElement::Surface(p5), Direction::NW).unwrap());
     }
 }
