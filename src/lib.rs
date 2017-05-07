@@ -1,7 +1,7 @@
 extern crate nalgebra as na;
 
-pub mod grid;
+pub mod elements;
 pub mod coord_trans;
 
-pub use grid::*;
+pub use elements::*;
 pub use coord_trans::*;
