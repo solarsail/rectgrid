@@ -1,7 +1,7 @@
 use std::ops::{Add, Sub, Neg};
 
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Hash)]
 pub struct Position {
     pub x: i32,
     pub y: i32,
@@ -98,7 +98,7 @@ impl<'a, 'b> Sub<&'a PositionDelta> for &'b Position {
 }
 
 
-#[derive(PartialEq, Eq, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Hash)]
 pub enum Direction {
     West,
     South,
@@ -126,7 +126,7 @@ impl Neg for Direction {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Hash)]
 pub enum GridElement {
     Vertex(Position),
     Surface(Position),
