@@ -1,4 +1,4 @@
-extern crate nalgebra as na;
+extern crate cgmath;
 
 pub mod elements;
 pub mod coord_trans;
