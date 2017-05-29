@@ -5,13 +5,13 @@ pub type Point = Point2<f32>;
 pub type Vector = Vector2<f32>;
 
 
-pub struct Layout {
+pub struct GridView {
     world_origin: Vector,
     grid_origin: Vertex,
     grid_size: (u32, u32), // in pixels
 }
 
-impl Layout {
+impl GridView {
     pub fn new(wo: Vector, go: Vertex, w: u32, h: u32) -> Layout {
         Layout {
             world_origin: wo,
@@ -40,6 +40,10 @@ impl Layout {
     pub fn bounding_box_of(&self, s: Tile) -> (f32, f32, u32, u32) {
         let tl = self.vertex2world(s.adjacent_vertex(Direction::NW));
         (tl.x, tl.y, self.grid_size.0, self.grid_size.1)
+    }
+
+    pub fn translate(&mut self, v: Vector) {
+        self.world_origin += v;
     }
 }
 
